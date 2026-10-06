@@ -16,7 +16,7 @@ with explainability (SHAP) and an interactive 3D heart planned on top.
 | Stage | Status |
 |---|---|
 | 1. Data audit + ML pipeline | **Done** (this repo) |
-| 2. FastAPI backend (`/predict`, `/health`, `/model-metrics`) | Planned |
+| 2. FastAPI backend + SHAP (`/predict`, `/health`, `/model-metrics`) | **Done** |
 | 3. React dashboard | Planned |
 | 4. 3D heart (React Three Fiber) | Planned |
 | 5. SHAP explanations | Planned |
@@ -74,6 +74,34 @@ With the recall-oriented tuned thresholds (test set):
 
 Full numbers (accuracy, F1, specificity, confusion matrices, all model comparisons) are in `metrics.json`.
 
+## Explainable AI (SHAP)
+
+SHAP values are computed from the trained models, never invented: `LinearExplainer` for logistic regression
+(log-odds) and `TreeExplainer` for random forest (probability). Each explanation reports its `unit`, a `base_value`
+and the top contributing features with sign. `base_value + sum(all SHAP values)` reproduces the model output
+(checked in `backend/tests`). Random-forest base values sit near 0.5 because the forest uses balanced class weights.
+Global importance (mean |SHAP| on training rows) is in `models/global_importance.json`.
+
+## API
+
+Run from the repo root: `uvicorn backend.app.main:app --reload --port 8000` (docs at `/docs`).
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | model load status |
+| `GET /model-metrics` | metrics.json + global SHAP importance + risk bands |
+| `GET /feature-schema` | real feature list with types and ranges (for the input form) |
+| `GET /demo-patients` | real dataset rows held out from training for all four models |
+| `POST /predict?top_k=8` | CAD + LAD/LCX/RCA probabilities, risk category, SHAP explanation per target |
+
+`POST /predict` body: `{"features": {"Age": 63, "Sex": 1, "HTN": 1, ...}}`. Any subset of features is accepted;
+missing values are median-imputed (training medians) and listed in `input_summary.imputed_features`.
+Unknown fields (including `LAD`, `LCX`, `RCA`, `Cath`) are rejected with HTTP 422, as are non-binary values for binary
+features and implausible numeric values. Risk categories (LOW <0.30, MODERATE <0.60, HIGH) are presentation bands only,
+not clinical cut-offs. Every prediction response carries the clinical disclaimer.
+
+Tests: `pytest backend/tests -q`.
+
 ## Limitations
 
 - Only 303 patients. The 61-patient test set is noisy (21-43 positives per target); prefer the nested-CV figures.
@@ -90,6 +118,7 @@ pip install -r requirements.txt
 
 python backend/ml/train.py          # trains 4 models, writes models/ and metrics.json (several minutes on 1 CPU)
 python backend/ml/make_metadata.py  # writes feature_metadata.json + demo patients
+python backend/ml/make_explainers.py  # writes SHAP background + global importance
 ```
 
 ## Project structure
@@ -100,7 +129,9 @@ cardiovision-ai/
 │   ├── data.py             # loading, encoding, leakage control
 │   ├── train.py            # nested-CV comparison, threshold tuning, held-out evaluation
 │   └── make_metadata.py    # feature_metadata.json + held-out demo patients
-├── data/                   # dataset (.xlsx)
+├── backend/app/            # FastAPI: main.py, schemas.py, store.py
+├── backend/tests/          # API + SHAP additivity tests
+├── data/                   # dataset (.xlsx), only needed for retraining
 ├── models/                 # {cad,lad,lcx,rca}_model.joblib, split_indices.json
 ├── reports/train_log.txt
 ├── metrics.json
@@ -110,5 +141,5 @@ cardiovision-ai/
 
 ## Roadmap
 
-FastAPI backend with Pydantic validation and per-target SHAP, React + TypeScript + Tailwind dashboard,
+React + TypeScript + Tailwind dashboard,
 React Three Fiber heart with LAD/LCX/RCA vessel risk colouring, demo-patient flow, and a full README/API section.
