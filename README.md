@@ -17,7 +17,7 @@ with explainability (SHAP) and an interactive 3D heart planned on top.
 |---|---|
 | 1. Data audit + ML pipeline | **Done** (this repo) |
 | 2. FastAPI backend + SHAP (`/predict`, `/health`, `/model-metrics`) | **Done** |
-| 3. React dashboard | Planned |
+| 3. React dashboard (form, demo patients, results, SHAP chart, metrics) | **Done** (vessel view is a 2D schematic until Stage 4) |
 | 4. 3D heart (React Three Fiber) | Planned |
 | 5. SHAP explanations | Planned |
 | 6-8. UI polish, demo mode, full docs | Planned |
@@ -102,6 +102,18 @@ not clinical cut-offs. Every prediction response carries the clinical disclaimer
 
 Tests: `pytest backend/tests -q`.
 
+## Running the dashboard
+
+```bash
+# terminal 1 (repo root)
+uvicorn backend.app.main:app --reload --port 8000
+# terminal 2
+cd frontend && cp .env.example .env && npm install && npm run dev    # http://localhost:5173
+```
+
+The form is generated from `GET /feature-schema`, so it only contains real dataset columns. Click a "Load Demo Patient"
+button (real held-out rows) to analyze instantly.
+
 ## Limitations
 
 - Only 303 patients. The 61-patient test set is noisy (21-43 positives per target); prefer the nested-CV figures.
@@ -131,6 +143,7 @@ cardiovision-ai/
 │   └── make_metadata.py    # feature_metadata.json + held-out demo patients
 ├── backend/app/            # FastAPI: main.py, schemas.py, store.py
 ├── backend/tests/          # API + SHAP additivity tests
+├── frontend/               # React + TS + Vite + Tailwind + Recharts dashboard
 ├── data/                   # dataset (.xlsx), only needed for retraining
 ├── models/                 # {cad,lad,lcx,rca}_model.joblib, split_indices.json
 ├── reports/train_log.txt

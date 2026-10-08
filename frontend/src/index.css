@@ -1,0 +1,4 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+body { @apply bg-slate-950 text-slate-200 antialiased; font-family: Inter, system-ui, sans-serif; }
+.glass { @apply bg-slate-900/60 border border-slate-700/50 rounded-xl backdrop-blur; }
+input, select { @apply bg-slate-800/80 border border-slate-700 rounded px-2 py-1 text-sm w-full focus:outline-none focus:border-cyan-500; }
