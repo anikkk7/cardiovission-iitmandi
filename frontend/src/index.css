@@ -2,3 +2,9 @@
 body { @apply bg-slate-950 text-slate-200 antialiased; font-family: Inter, system-ui, sans-serif; }
 .glass { @apply bg-slate-900/60 border border-slate-700/50 rounded-xl backdrop-blur; }
 input, select { @apply bg-slate-800/80 border border-slate-700 rounded px-2 py-1 text-sm w-full focus:outline-none focus:border-cyan-500; }
+body { background-image: radial-gradient(1200px 500px at 50% -10%, rgba(34,211,238,.08), transparent), radial-gradient(800px 400px at 100% 100%, rgba(239,68,68,.05), transparent); background-attachment: fixed; }
+.glass { box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.25); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.fade-in { animation: fadeIn .35s ease-out both; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #22d3ee; outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }

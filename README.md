@@ -19,8 +19,10 @@ with explainability (SHAP) and an interactive 3D heart planned on top.
 | 2. FastAPI backend + SHAP (`/predict`, `/health`, `/model-metrics`) | **Done** |
 | 3. React dashboard (form, demo patients, results, SHAP chart, metrics) | **Done**  |
 | 4. 3D heart (React Three Fiber) | **Done** (procedural, stylised) |
-| 5. SHAP explanations | Planned |
-| 6-8. UI polish, demo mode, full docs | Planned |
+| 5. SHAP: patient-level + global importance | **Done** |
+| 6. UI polish + physiological breakdown | **Done** |
+| 7. Demo flow script | Planned |
+| 8. Final README | Planned |
 
 ## Dataset
 

@@ -12,7 +12,7 @@ feats = []
 for c in X.columns:
     kind = "binary" if c in binary else ("ordinal" if c in ordinal or X[c].nunique() <= 5 else "numeric")
     f = {"name": c, "type": kind, "min": float(X[c].min()), "max": float(X[c].max()),
-         "median": float(X[c].median()), "n_unique": int(X[c].nunique())}
+         "median": float(X[c].median()), "p25": float(X[c].quantile(0.25)), "p75": float(X[c].quantile(0.75)), "n_unique": int(X[c].nunique())}
     if kind == "ordinal" and c in ordinal: f["encoding"] = ordinal[c]
     if c == "Sex": f["encoding"] = {"Female": 0, "Male": 1}
     feats.append(f)

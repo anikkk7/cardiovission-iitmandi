@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from 'recharts'
+import { GlobalImportance, Physiology } from './Panels'
 import { api, Demo, Feature, Metrics, Result, TargetName } from './api'
 
 const Heart3D = lazy(() => import('./Heart3D'))
@@ -53,7 +54,7 @@ export default function App() {
       {err && <div className="mb-3 text-sm text-red-300 bg-red-950/40 border border-red-800 rounded-lg px-3 py-2">{err}</div>}
 
       <div className="grid lg:grid-cols-[300px_1fr_320px] gap-3">
-        <section className="glass p-3 lg:max-h-[640px] overflow-y-auto">
+        <section className="glass p-3 fade-in lg:max-h-[640px] overflow-y-auto">
           <h2 className="font-medium mb-2">Patient clinical data</h2>
           <div className="grid grid-cols-2 gap-2">{key.map(f => <Field key={f.name} f={f} v={vals[f.name] ?? ''} set={s => setVals({ ...vals, [f.name]: s })} />)}</div>
           <button onClick={() => setMore(!more)} className="text-xs text-cyan-400 mt-3">{more ? 'Hide' : 'Show'} {rest.length} more features</button>
@@ -88,7 +89,7 @@ export default function App() {
         <section className="glass p-3">
           <h2 className="font-medium">Why this prediction? <span className="text-cyan-400">{sel}</span></h2>
           {!ex ? <p className="text-sm text-slate-500 mt-2">Run an analysis to see patient-level SHAP contributions.</p> : <>
-            <p className="text-xs text-slate-400 mb-1">Red bars push risk up, green bars push it down. Units: {ex.unit}. Values are real SHAP values from the {pred?.model} model.</p>
+            <p className="text-xs text-slate-400 mb-1"><b className="text-red-400">↑ Red</b> bars push risk up, <b className="text-green-400">↓ green</b> bars push it down. Units: {ex.unit}. Values are real SHAP values from the {pred?.model} model.</p>
             <div style={{ height: 320 }}><ResponsiveContainer><BarChart data={chart} layout="vertical" margin={{ left: 150, right: 20 }}>
               <XAxis type="number" stroke="#64748b" fontSize={11} /><YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={150} interval={0} />
               <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155' }} formatter={(v: number) => v.toFixed(4)} /><ReferenceLine x={0} stroke="#64748b" />
@@ -104,5 +105,10 @@ export default function App() {
             <ol className="text-xs list-decimal ml-4">{metrics.global_importance[sel].features.slice(0, 6).map(f => <li key={f.feature}>{f.feature}</li>)}</ol></>}
         </section>
       </div>
+      <div className="grid lg:grid-cols-2 gap-3 mt-3">
+        {metrics && <GlobalImportance m={metrics} sel={sel} />}
+        <Physiology schema={schema} vals={vals} />
+      </div>
+      <footer className="text-[11px] text-slate-600 text-center mt-4">CardioVision AI · research prototype · not for clinical use</footer>
     </div>)
 }
