@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, ReferenceLine } from 'recharts'
 import { api, Demo, Feature, Metrics, Result, TargetName } from './api'
 
+const Heart3D = lazy(() => import('./Heart3D'))
 const COLORS: Record<string, string> = { LOW: '#22c55e', MODERATE: '#f59e0b', HIGH: '#ef4444' }
 const KEY = ['Age', 'Sex', 'BMI', 'BP', 'PR', 'HTN', 'DM', 'Current Smoker', 'FH', 'Typical Chest Pain', 'Atypical', 'Region RWMA',
   'EF-TTE', 'FBS', 'LDL', 'HDL', 'TG', 'ESR', 'HB', 'Tinversion', 'ST Elevation', 'ST Depression', 'LVH', 'Q Wave']
@@ -13,21 +14,6 @@ function Field({ f, v, set }: { f: Feature; v: string; set: (s: string) => void 
     return <div>{label}<select value={v} onChange={e => set(e.target.value)}><option value="">— (impute)</option>
       {Array.from({ length: f.max - f.min + 1 }, (_, i) => f.min + i).map(o => <option key={o} value={o}>{f.type === 'binary' ? (o ? 'Yes / 1' : 'No / 0') : o}</option>)}</select></div>
   return <div>{label}<input type="number" step="any" placeholder={`median ${f.median}`} value={v} onChange={e => set(e.target.value)} /></div>
-}
-
-function Schematic({ r, sel, onSel }: { r: Result | null; sel: TargetName; onSel: (t: TargetName) => void }) {
-  const col = (t: string) => r ? COLORS[r.vessels[t].risk_category] : '#475569'
-  const V = ({ t, d }: { t: 'LAD' | 'LCX' | 'RCA'; d: string }) => (
-    <g onClick={() => onSel(t)} className="cursor-pointer">
-      <path d={d} stroke="transparent" strokeWidth="26" fill="none" />
-      <path d={d} stroke={col(t)} strokeWidth={sel === t ? 10 : 6} strokeLinecap="round" fill="none" style={sel === t ? { filter: `drop-shadow(0 0 8px ${col(t)})` } : {}} />
-    </g>)
-  return (
-    <svg viewBox="0 0 300 300" className="w-full max-h-[420px]">
-      <path d="M150 270 C40 200 20 120 70 75 C105 45 140 70 150 95 C160 70 195 45 230 75 C280 120 260 200 150 270Z" fill="#1e293b" stroke="#334155" strokeWidth="2" />
-      <V t="LAD" d="M150 90 C150 150 140 200 150 245" /><V t="LCX" d="M140 95 C95 105 70 150 80 200" /><V t="RCA" d="M160 95 C205 100 235 140 225 200" />
-      {(['LAD', 'LCX', 'RCA'] as const).map((t, i) => <text key={t} x={[158, 60, 232][i]} y={[250, 215, 215][i]} fill="#cbd5e1" fontSize="11" fontWeight="600">{t}{r ? ` ${pct(r.vessels[t].probability)}` : ''}</text>)}
-    </svg>)
 }
 
 export default function App() {
@@ -79,8 +65,7 @@ export default function App() {
         <section className="glass p-3 flex flex-col items-center">
           <div className="flex gap-1 mb-1">{(['CAD', 'LAD', 'LCX', 'RCA'] as TargetName[]).map(t => <button key={t} onClick={() => setSel(t)}
             className={`px-3 py-1 text-xs rounded-md border ${sel === t ? 'border-cyan-400 text-cyan-300' : 'border-slate-700 text-slate-400'}`}>{t}</button>)}</div>
-          <Schematic r={res} sel={sel} onSel={setSel} />
-          <p className="text-[11px] text-slate-500 text-center">Schematic vessel-risk preview (interactive 3D heart arrives in Stage 4). Click a vessel to inspect it.</p>
+          <div className="w-full h-[460px]"><Suspense fallback={<p className="text-sm text-slate-500 p-4">Loading 3D heart…</p>}><Heart3D r={res} sel={sel} onSel={setSel} /></Suspense></div>
         </section>
 
         <section className="glass p-3">

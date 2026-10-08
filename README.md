@@ -17,8 +17,8 @@ with explainability (SHAP) and an interactive 3D heart planned on top.
 |---|---|
 | 1. Data audit + ML pipeline | **Done** (this repo) |
 | 2. FastAPI backend + SHAP (`/predict`, `/health`, `/model-metrics`) | **Done** |
-| 3. React dashboard (form, demo patients, results, SHAP chart, metrics) | **Done** (vessel view is a 2D schematic until Stage 4) |
-| 4. 3D heart (React Three Fiber) | Planned |
+| 3. React dashboard (form, demo patients, results, SHAP chart, metrics) | **Done**  |
+| 4. 3D heart (React Three Fiber) | **Done** (procedural, stylised) |
 | 5. SHAP explanations | Planned |
 | 6-8. UI polish, demo mode, full docs | Planned |
 
@@ -113,6 +113,15 @@ cd frontend && cp .env.example .env && npm install && npm run dev    # http://lo
 
 The form is generated from `GET /feature-schema`, so it only contains real dataset columns. Click a "Load Demo Patient"
 button (real held-out rows) to analyze instantly.
+
+## 3D visualization
+
+`frontend/src/Heart3D.tsx` renders a procedural heart (extruded, bevelled Bezier outline) with three separate coronary
+tubes (LAD, LCX, RCA) using React Three Fiber and Drei. No anatomical GLB was available, so the geometry is stylised.
+Vessel colour comes from the model's predicted probability band (green LOW, amber MODERATE, red HIGH); the selected
+vessel is thicker and glows; drag rotates, scroll zooms, clicking a vessel selects it and updates the results and SHAP panels.
+The vessel paths are schematic and sit on the front of the heart only. They encode **vessel-level model predictions**,
+not lesion coordinates, and the app never claims a blockage location.
 
 ## Limitations
 
