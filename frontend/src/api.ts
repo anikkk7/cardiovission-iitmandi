@@ -1,4 +1,4 @@
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://127.0.0.1:8000'
 export type TargetName = 'CAD' | 'LAD' | 'LCX' | 'RCA'
 export interface Pred { probability: number; risk_category: string; predicted_positive: boolean; decision_threshold: number; model: string; cv_roc_auc: number }
 export interface Contribution { feature: string; value: number; imputed: boolean; shap_value: number; direction: string }

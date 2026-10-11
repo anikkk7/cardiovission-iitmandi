@@ -5,8 +5,34 @@ Tree models    -> shap.TreeExplainer; values are in the model's raw output
                   (probability for RandomForest, log-odds for boosted trees).
 The `unit` is always returned so the UI never mixes scales silently.
 """
-import numpy as np, pandas as pd, shap
+import sys
+from pathlib import Path
+
+import numpy as np, pandas as pd
 from sklearn.linear_model import LogisticRegression
+
+
+def _avoid_base_python_module_shadowing():
+    """Keep stray files in the base Python folder from shadowing installed packages."""
+    cleaned = []
+    for entry in sys.path:
+        if not entry:
+            cleaned.append(entry)
+            continue
+        path = Path(entry)
+        try:
+            resolved = path.resolve()
+        except OSError:
+            cleaned.append(entry)
+            continue
+        if resolved == Path(sys.base_prefix).resolve() and (resolved / "matplotlib.py").exists():
+            continue
+        cleaned.append(entry)
+    sys.path[:] = cleaned
+
+
+_avoid_base_python_module_shadowing()
+import shap
 
 
 def split_pipeline(pipe):
