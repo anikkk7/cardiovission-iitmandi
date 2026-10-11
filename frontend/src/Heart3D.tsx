@@ -91,6 +91,6 @@ export default function Heart3D({ r, sel, onSel }: { r: Result | null; sel: Targ
         <button onClick={() => ctl.current?.reset()} className="text-[11px] px-2 py-1 rounded bg-slate-800/80 border border-slate-600 hover:border-cyan-500">Reset view</button></div>
       <div className="absolute bottom-2 left-2 flex gap-2 text-[10px] text-slate-400">
         {Object.entries(COLORS).map(([k, c]) => <span key={k} className="flex items-center gap-1"><i className="inline-block w-2 h-2 rounded-full" style={{ background: c }} />{k.toLowerCase()}</span>)}</div>
-      <p className="absolute bottom-2 right-2 text-[10px] text-slate-500 max-w-[58%] text-right">Anterior view (patient's right = viewer's left). Drag to rotate · scroll to zoom · click a vessel. Stylised heart showing predicted vessel-level risk, not an anatomical lesion.</p>
+      <p className="absolute bottom-2 right-2 text-[10px] text-slate-500 max-w-[58%] text-right">Anterior view (patient's right = viewer's left). Drag to rotate - scroll to zoom - click a vessel. Stylised heart showing predicted vessel-level risk, not an anatomical lesion.</p>
     </div>)
 }
