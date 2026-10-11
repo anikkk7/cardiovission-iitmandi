@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Html, ContactShadows } from '@react-three/drei'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { MutableRefObject } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeometry.js'
 import type { Result, TargetName } from './api'
 
@@ -31,6 +32,33 @@ function Tube({ pts, r, color, rough = 0.5 }: { pts: [number, number, number][];
 const Blob = ({ p, s, color }: { p: [number, number, number]; s: [number, number, number]; color: string }) =>
   <mesh position={p} scale={s}><sphereGeometry args={[1, 40, 32]} /><meshPhysicalMaterial color={color} roughness={0.55} clearcoat={0.4} clearcoatRoughness={0.45} /></mesh>
 
+function LabelSprite({ position, text, color }: { position: THREE.Vector3; text: string; color: string }) {
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 64
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return new THREE.CanvasTexture(canvas)
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)'
+    ctx.strokeStyle = color
+    ctx.lineWidth = 4
+    ctx.roundRect(4, 4, 248, 56, 12)
+    ctx.fill()
+    ctx.stroke()
+    ctx.fillStyle = '#f8fafc'
+    ctx.font = 'bold 26px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, 128, 33)
+    const map = new THREE.CanvasTexture(canvas)
+    map.colorSpace = THREE.SRGBColorSpace
+    return map
+  }, [color, text])
+
+  useEffect(() => () => texture.dispose(), [texture])
+  return <sprite position={position} scale={[0.75, 0.19, 1]}><spriteMaterial map={texture} transparent depthTest={false} /></sprite>
+}
+
 function Vessel({ name, color, selected, hasResult, prob, onSel }: { name: V; color: string; selected: boolean; hasResult: boolean; prob?: number; onSel: () => void }) {
   const c = useMemo(() => curve(PATHS[name].map(([th, t]) => surf(th, t, 0.03).toArray() as [number, number, number])), [name])
   const geo = useMemo(() => new THREE.TubeGeometry(c, 120, selected ? 0.062 : 0.042, 16, false), [c, selected])
@@ -43,9 +71,7 @@ function Vessel({ name, color, selected, hasResult, prob, onSel }: { name: V; co
       <mesh geometry={geo}><meshStandardMaterial ref={mat} color={color} emissive={color} roughness={0.35} /></mesh>
       <mesh geometry={hit} onClick={e => { e.stopPropagation(); onSel() }} onPointerOver={e => { e.stopPropagation(); setHover(true); document.body.style.cursor = 'pointer' }}
         onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto' }}><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
-      <Html position={lp} center style={{ pointerEvents: 'none' }}>
-        <div className={`text-[11px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded border bg-slate-950/80 ${selected ? 'text-white' : 'text-slate-300'}`} style={{ borderColor: hasResult ? color : '#475569' }}>
-          {name}{prob !== undefined ? ` ${(prob * 100).toFixed(0)}%` : ''}</div></Html>
+      <LabelSprite position={lp} text={`${name}${prob !== undefined ? ` ${(prob * 100).toFixed(0)}%` : ''}`} color={hasResult ? color : '#475569'} />
     </group>)
 }
 
@@ -76,15 +102,49 @@ function Scene({ r, sel, onSel }: { r: Result | null; sel: TargetName; onSel: (t
     </group></group>)
 }
 
+function Shadow() {
+  return <mesh position={[0, -1.72, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+    <circleGeometry args={[1.75, 64]} />
+    <meshBasicMaterial color="#020617" transparent opacity={0.35} depthWrite={false} />
+  </mesh>
+}
+
+function Controls({ auto, ctl }: { auto: boolean; ctl: MutableRefObject<ThreeOrbitControls | null> }) {
+  const { camera, gl } = useThree()
+  const controls = useMemo(() => new ThreeOrbitControls(camera, gl.domElement), [camera, gl])
+
+  useEffect(() => {
+    ctl.current = controls
+    controls.enablePan = false
+    controls.enableDamping = true
+    controls.autoRotateSpeed = 1.2
+    controls.minDistance = 2.5
+    controls.maxDistance = 9
+    controls.target.set(0, 0.35, 0)
+    controls.update()
+    return () => {
+      if (ctl.current === controls) ctl.current = null
+      controls.dispose()
+    }
+  }, [controls, ctl])
+
+  useFrame(() => {
+    controls.autoRotate = auto
+    controls.update()
+  })
+
+  return null
+}
+
 export default function Heart3D({ r, sel, onSel }: { r: Result | null; sel: TargetName; onSel: (t: TargetName) => void }) {
-  const ctl = useRef<any>(null); const [auto, setAuto] = useState(false)
+  const ctl = useRef<ThreeOrbitControls | null>(null); const [auto, setAuto] = useState(false)
   return (
     <div className="relative w-full h-full min-h-[440px]">
       <Canvas camera={{ position: [0.2, 0.3, 5.4], fov: 40 }} dpr={[1, 2]}>
         <hemisphereLight args={['#ffe8e8', '#1e293b', 0.9]} /><directionalLight position={[3, 4, 5]} intensity={2.0} /><directionalLight position={[-4, 1, -3]} intensity={0.9} color="#7dd3fc" />
         <Scene r={r} sel={sel} onSel={onSel} />
-        <ContactShadows position={[0, -1.7, 0]} opacity={0.35} scale={7} blur={2.6} far={3} />
-        <OrbitControls ref={ctl} makeDefault enablePan={false} enableDamping autoRotate={auto} autoRotateSpeed={1.2} minDistance={2.5} maxDistance={9} target={[0, 0.35, 0]} />
+        <Shadow />
+        <Controls auto={auto} ctl={ctl} />
       </Canvas>
       <div className="absolute top-2 right-2 flex gap-1">
         <button onClick={() => setAuto(!auto)} className={`text-[11px] px-2 py-1 rounded bg-slate-800/80 border ${auto ? 'border-cyan-400' : 'border-slate-600'}`}>Auto-rotate</button>

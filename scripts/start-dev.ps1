@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root ".venv\Scripts\python.exe"
+$viteCache = Join-Path $root "frontend\node_modules\.vite"
 
 if (-not (Test-Path $python)) {
     Write-Host "Local Python environment not found. Running setup first..."
@@ -15,10 +16,14 @@ $backend = Start-Process powershell -PassThru -WindowStyle Hidden -ArgumentList 
 )
 
 $frontendDir = Join-Path $root "frontend"
+if (Test-Path $viteCache) {
+    Remove-Item $viteCache -Recurse -Force
+}
+
 $frontend = Start-Process powershell -PassThru -WindowStyle Hidden -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location '$frontendDir'; npm run dev -- --host 127.0.0.1"
+    "Set-Location '$frontendDir'; npm run dev -- --host 127.0.0.1 --force"
 )
 
 $pidFile = Join-Path $root ".dev-pids.json"
