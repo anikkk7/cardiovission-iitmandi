@@ -16,7 +16,7 @@ async def lifespan(app):
 
 app = FastAPI(title="CardioVision AI", version="0.2.0", lifespan=lifespan,
               description="Clinical decision-support prototype (research/education only). " + VIS_NOTE)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
                    allow_methods=["*"], allow_headers=["*"])
 
 

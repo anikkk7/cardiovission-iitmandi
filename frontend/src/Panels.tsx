@@ -11,7 +11,7 @@ export function GlobalImportance({ m, sel }: { m: Metrics; sel: TargetName }) {
       <h2 className="font-medium">Global feature importance <span className="text-cyan-400">{sel}</span></h2>
       <p className="text-xs text-slate-400 mb-1">Mean |SHAP| over the 242 training patients ({g.unit}). Larger = the model relies on it more overall.</p>
       <div style={{ height: 300 }}><ResponsiveContainer><BarChart data={data} layout="vertical" margin={{ left: 100, right: 16 }}>
-        <XAxis type="number" stroke="#64748b" fontSize={11} /><YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={100} interval={0} reversed />
+        <XAxis type="number" stroke="#64748b" fontSize={11} /><YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={100} interval={0} />
         <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155' }} formatter={(v: number) => v.toFixed(4)} />
         <Bar dataKey="v" radius={3}>{data.map((_, i) => <Cell key={i} fill="#22d3ee" fillOpacity={1 - i * 0.05} />)}</Bar></BarChart></ResponsiveContainer></div>
     </section>)

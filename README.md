@@ -118,12 +118,13 @@ button (real held-out rows) to analyze instantly.
 
 ## 3D visualization
 
-`frontend/src/Heart3D.tsx` renders a procedural heart (extruded, bevelled Bezier outline) with three separate coronary
-tubes (LAD, LCX, RCA) using React Three Fiber and Drei. No anatomical GLB was available, so the geometry is stylised.
-Vessel colour comes from the model's predicted probability band (green LOW, amber MODERATE, red HIGH); the selected
-vessel is thicker and glows; drag rotates, scroll zooms, clicking a vessel selects it and updates the results and SHAP panels.
-The vessel paths are schematic and sit on the front of the heart only. They encode **vessel-level model predictions**,
-not lesion coordinates, and the app never claims a blockage location.
+`frontend/src/Heart3D.tsx` renders a procedural anatomical-style heart with React Three Fiber and Drei (no GLB was supplied):
+a parametric ventricular surface with apex and organic surface relief, right atrium, left atrium and appendage, aorta with arch,
+pulmonary trunk and branches, and SVC. The LAD, LCX and RCA are tubes generated **on the same surface function**, following the
+anterior interventricular groove and the left/right AV grooves, in standard anterior orientation (patient's right = viewer's left).
+Vessel colour comes from the predicted probability band (green LOW, amber MODERATE, red HIGH); the selected vessel is thicker and
+pulses; selecting a vessel turns the heart to bring it toward the camera. Drag rotates, scroll zooms, Auto-rotate and Reset view are provided.
+Vessel paths encode **vessel-level model predictions**, not lesion coordinates, and the app never claims a blockage location.
 
 ## Limitations
 

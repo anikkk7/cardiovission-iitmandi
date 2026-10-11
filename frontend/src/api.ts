@@ -12,7 +12,7 @@ export interface Metrics { metrics: { targets: Record<string, any> }; global_imp
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(BASE + path, init)
-  if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? r.statusText)) }
+  if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(typeof b.detail === 'string' ? b.detail : Array.isArray(b.detail) ? b.detail.map((d: any) => String(d.msg ?? d).replace(/^Value error, /, '')).join('; ') : r.statusText) }
   return r.json()
 }
 export const api = {
